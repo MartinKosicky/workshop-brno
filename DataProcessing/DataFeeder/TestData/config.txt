@@ -1,0 +1,2 @@
+game_count_mean 20
+game_count_variance 4

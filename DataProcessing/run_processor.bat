@@ -1,0 +1,1 @@
+python eventhub_processor.py --url http://localhost:9999 -g g1 --enable_send --connection_string %CONNECTION_STRING%

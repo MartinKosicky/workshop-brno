@@ -1,0 +1,174 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="./node_modules/bootstrap/dist/css/bootstrap.css" />
+    <script type="text/javascript" src="./node_modules/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="./node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
+    <script type="text/javascript" src="./node_modules/chart.js/dist/Chart.bundle.js"></script>
+    <script type="text/javascript">
+
+
+        function ScheduleBarUpdate(dataSource, chart) {
+            $.ajax({
+                url: dataSource
+            }).done( function(data) {
+                var values = [];
+                var labels = []
+                for(var i=0;i<data.length;i++) {
+                    values.push(data[i][1]);
+                    labels.push(data[i][0]);
+                }
+
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = values
+                chart.update();
+            });
+
+            setTimeout(function() {
+                ScheduleBarUpdate(dataSource, chart);
+            }, 2000);
+        }
+
+        function ScheduleLineUpdate(dataSource, chart) {
+            $.ajax({
+                url: dataSource
+            }).done( function(data) {
+                var values = [];
+                var labels = []
+                for(var i=0;i<data.length;i++) {
+                    values.push(data[i][1]);
+                    labels.push(data[i][0]);
+                }
+
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = values
+                chart.update();
+            });
+
+            setTimeout(function() {
+                ScheduleBarUpdate(dataSource, chart);
+            }, 2000);
+        }
+
+        function SetLineGraph(id, dataSource, label) {
+            var ctx = document.getElementById(id).getContext('2d');
+            var myData = []
+            var chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets:[{
+                        label:label,
+                        backgroundColor: 'rgb(255, 99, 132)',
+                        data:[]
+                    }]
+                },
+            });    
+
+            ScheduleLineUpdate(dataSource, chart, label) 
+        }
+
+        function SetBarGraph(id, dataSource, label) {
+            var ctx = document.getElementById(id).getContext('2d');
+            var myData = []
+            var chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets:[{
+                        label:label,
+                        backgroundColor: 'rgb(255, 99, 132)',
+                        data:[]
+                    }]
+                },
+            });
+
+            ScheduleBarUpdate(dataSource,chart, label)
+        }
+
+        $(document).ready(function(){
+            SetBarGraph("top-apps", "/get_data/top_apps", "Applicaion");
+            SetBarGraph("mostly-installed", "/get_data/top_installed", "Applicaion");
+            SetBarGraph("mostly-uninstalled", "/get_data/top_uninstalled", "Applicaion");
+            SetBarGraph("mostly-installed-and-uninstalled", "/get_data/top_installed_and_uninstalled", "Applicaion");
+            SetBarGraph("mostly-installed-but-not-uninstalled", "/get_data/top_installed_not_uninstalled", "Applicaion");
+            SetLineGraph("count-apps", "/get_data_timeline/apps_count", "Applications installed")
+        })
+
+        
+
+
+    </script>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        
+            <div class="d-flex">
+                <div class="card m-4" style="width:500px">
+                    <canvas id="top-apps"></canvas>
+                    <div class="card-body">
+                        <h5 class="card-title">Top installed Games</h5>
+                        <p class="card-text"></p>
+                    </div>
+                </div>
+
+                <div class="card m-4" style="width:500px">
+                    <canvas id="mostly-installed"></canvas>
+                    <div class="card-body">
+                        <h5 class="card-title">Applications that have been installed the most in last minute</h5>
+                        <p class="card-text"></p>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="d-flex">
+                <div class="card m-4" style="width:500px">
+                        <canvas id="mostly-uninstalled"></canvas>
+                        <div class="card-body">
+                            <h5 class="card-title">Applications that have been uninstalled the most in last minute</h5>
+                            <p class="card-text"></p>
+                        </div>
+                </div>
+
+                <div class="card m-4" style="width:500px">
+                    <canvas id="count-apps"></canvas>
+                    <div class="card-body">
+                        <h5 class="card-title">Game count</h5>
+                        <p class="card-text">Number of games installed in time</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex">
+                <div class="card m-4" style="width:500px">
+                        <canvas id="mostly-installed-and-uninstalled"></canvas>
+                        <div class="card-body">
+                            <h5 class="card-title">Top installed and uninstalled</h5>
+                            <p class="card-text">Applications that have been installed and uninstalled the most in last minute</p>
+                        </div>
+                </div>
+
+                <div class="card m-4" style="width:500px">
+                    <canvas id="mostly-installed-but-not-uninstalled"></canvas>
+                    <div class="card-body">
+                        <h5 class="card-title">Top installed and not uninstalled</h5>
+                        <p class="card-text">Applications that have been installed and not uninstalled the most in last minute</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+</body>
+
+
+
+</html>
