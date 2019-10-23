@@ -36,11 +36,16 @@ class TopAppProcessor2:
     def __init__(self,partition_id, communicator:Comunicator):
         self.partition_id = partition_id
         self.communicator = communicator
-        self.apps = {} # type: typing.Dict[str, typing.Set[str]]
-        self.timeout_helper = TimeoutHelper()
-        self.games_installed = {} # type: typing.Dict[str, typing.Set[str]]
-        self.games_uninstalled = {} # type: typing.Dict[str, typing.Set[str]]
 
+        self.timeout_helper = TimeoutHelper()
+
+        ######### SET THIS SOMEWHERE IN CODE
+        self.apps = {}  # type: typing.Dict[str, typing.Set[str]]      # apps is a dictionary of [game_name,  list of agent_ids
+        self.games_installed = {} # type: typing.Dict[str, typing.Set[str]]   # dictionary of [game_name,  list of agent_ids],  reset in _update_statistics
+        self.games_uninstalled = {} # type: typing.Dict[str, typing.Set[str]]  # dictionary of [game_name,  list of agent_ids],  reset in _update_statistics
+        #######################################################################
+
+        ############### STATISTICS #####################################################
         self.games_installed_prev_minute = [] # type: typing.List[typing.Tuple[str,int]]
         self.games_uninstalled_prev_minute = [] # type: typing.List[typing.Tuple[str,int]]
         self.games_installed_prev_minute_and_not_uninstalled = [] # type: typing.List[typing.Tuple[str,int]]
@@ -51,13 +56,6 @@ class TopAppProcessor2:
 
         pass
 
-
-
-    # this function returns a sorted list of tuples (from highest), where first item is name of game and second is number of installations
-    def _get_top_games(self) -> typing.List[typing.Tuple[str,int]] :
-        game_list = sorted([(name, len(agent_list)) for name,agent_list in self.apps.items()],key=lambda v: v[1], reverse=True)[:10]
-        return game_list
-
     #this function returns the number of games
     def _get_game_count(self) -> int:
         sum = 0
@@ -65,58 +63,37 @@ class TopAppProcessor2:
             sum += len(v)
         return sum
 
-    def _update_top_games(self):
-        self.communicator.set_top_games(self._get_top_games(), self.partition_id)
-
     def _update_game_count(self):
         self.communicator.update_game_count(self._get_game_count(), self.partition_id )
 
     def _on_agent_installed(self, game_name, agent_id):
-        self.games_installed.setdefault(game_name, set()).add(agent_id)
+        # TODO: Implement this
+        pass
 
     def _on_agent_uninstalled(self, game_name, agent_id):
-        self.games_uninstalled.setdefault(game_name, set()).add(agent_id)
+        # TODO: Implement this
+        pass
+
 
 
     def _update_statistics(self, cur_time):
         if cur_time - self.last_installed_swap_time > 20:
             print(f"{self.partition_id} : Handling swap")
-            key = lambda x:x[1]
-
-
-            games_installed = set()
-            games_uninstalled = set()
-            for game_name, agent_list in self.games_installed.items():
-                for agent_id in agent_list:
-                    games_installed.add((game_name, agent_id))
-            for game_name, agent_list in self.games_uninstalled.items():
-                for agent_id in agent_list:
-                    games_uninstalled.add((game_name, agent_id))
-
-
-            games_installed_and_uninstalled = games_installed.intersection(games_uninstalled)
-            games_installed_ant_not_uninstalled = games_installed.difference(games_uninstalled)
-
-            def set_to_count_map(s):
-                result_map = {}
-                for game_name, agent_id in s:
-                    if game_name not in result_map:
-                        result_map[game_name] = 0
-                    result_map[game_name] = result_map[game_name] + 1
-
-                return sorted([(k,v) for k,v in result_map.items()], reverse=True, key=lambda x:x[1])[:10]
-
-
-            self.games_installed_prev_minute = sorted([(k,len(v)) for k,v in self.games_installed.items()], key=key, reverse=True)[:10]
-            self.games_uninstalled_prev_minute = sorted([(k, len(v)) for k, v in self.games_uninstalled.items()], key=key, reverse=True)[:10]
-            self.games_installed_prev_minute_and_uninstalled = set_to_count_map(games_installed_and_uninstalled)
-            self.games_installed_prev_minute_and_not_uninstalled = set_to_count_map(games_installed_ant_not_uninstalled)
-            self.top_games_prev_minute = self._get_top_games()
-
-
-            self.games_installed = {}
-            self.games_uninstalled = {}
             self.last_installed_swap_time = cur_time
+
+
+            # TODO Implement this
+            # Hint: accumulate data during 20 secs,
+            # Swap togames_installed_prev_minute, games_uninstalled_prev_minute, games_installed_prev_minute_and_uninstalled, games_installed_prev_minute_and_not_uninstalled
+
+            # Try first
+            # 1. self.top_games_prev_minute
+            # 2. games_installed_prev_minute , games_uninstalled_prev_minute
+            # 3. games_installed_prev_minute_and_uninstalled,  games_installed_prev_minute_and_not_uninstalled
+            #      hint: use set(installed this round -> tuple(game_name, agent_id)).difference(uninstalled this round -> tuple(game_name, agent_id))
+            #      hint: use set(installed this round -> tuple(game_name, agent_id)).intersection(uninstalled this round -> tuple(game_name, agent_id))
+
+
 
         self.communicator.set_top_installed_games(self.games_installed_prev_minute, self.partition_id)
         self.communicator.set_top_uninstalled_games(self.games_uninstalled_prev_minute, self.partition_id)
